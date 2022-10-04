@@ -18,13 +18,25 @@
           "type": "dashboard"
         },
         "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "enable": true,
+        "expr": "count(perftest_args{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\"}) by (workload_name,command_line) > 0",
+        "iconColor": "#023b4e",
+        "name": "Workload Name",
+        "tagKeys": "workload_name",
+        "titleFormat": "{{command_line}}"
       }
     ]
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 66,
+  "id": 77,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -39,8 +51,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -157,8 +167,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -275,8 +283,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -393,13 +399,11 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -412,7 +416,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -422,7 +426,9 @@
               "mode": "off"
             }
           },
+          "links": [],
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -436,28 +442,9 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "s"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byFrameRefID",
-              "options": "B"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    10,
-                    10
-                  ],
-                  "fill": "dash"
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -465,8 +452,8 @@
         "x": 12,
         "y": 8
       },
-      "id": 46,
-      "interval": "5s",
+      "id": 2,
+      "links": [],
       "options": {
         "legend": {
           "calcs": [
@@ -476,13 +463,14 @@
           ],
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "8.0.3",
       "targets": [
         {
           "datasource": {
@@ -490,32 +478,23 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "sum(rabbitmq_queue_messages_ready{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) by (rabbitmq_cluster)",
-          "interval": "",
-          "legendFormat": "Ready {{ rabbitmq_cluster }}",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "exemplar": true,
-          "expr": "sum(rabbitmq_queue_messages_unacked{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) by (rabbitmq_cluster)",
-          "hide": false,
+          "expr": "avg(perftest_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",quantile=\"$percentile\",instance=~\"$instance\",namespace=\"$namespace\"} > 0) by (rabbitmq_cluster)",
+          "format": "time_series",
           "instant": false,
-          "interval": "",
-          "legendFormat": "Unacked {{ rabbitmq_cluster }}",
-          "refId": "B"
+          "interval": "1s",
+          "intervalFactor": 1,
+          "legendFormat": "{{instance}}",
+          "refId": "A"
         }
       ],
-      "title": "Messages Ready & Unacked",
+      "title": "End-to-end message latency",
+      "transparent": true,
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "stackdriver",
-        "uid": "I0PD7QG4k"
+        "uid": "1Um3MYV4k"
       },
       "fieldConfig": {
         "defaults": {
@@ -523,8 +502,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -603,6 +580,36 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "throttled read bytes"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "throttled write bytes"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
@@ -629,7 +636,7 @@
         {
           "datasource": {
             "type": "stackdriver",
-            "uid": "I0PD7QG4k"
+            "uid": "1Um3MYV4k"
           },
           "metricQuery": {
             "aliasBy": "read bytes {{metric.label.device_name}}",
@@ -658,7 +665,7 @@
         {
           "datasource": {
             "type": "stackdriver",
-            "uid": "I0PD7QG4k"
+            "uid": "1Um3MYV4k"
           },
           "hide": false,
           "metricQuery": {
@@ -688,7 +695,7 @@
         {
           "datasource": {
             "type": "stackdriver",
-            "uid": "I0PD7QG4k"
+            "uid": "1Um3MYV4k"
           },
           "hide": false,
           "metricQuery": {
@@ -718,7 +725,7 @@
         {
           "datasource": {
             "type": "stackdriver",
-            "uid": "I0PD7QG4k"
+            "uid": "1Um3MYV4k"
           },
           "hide": false,
           "metricQuery": {
@@ -744,9 +751,197 @@
           },
           "queryType": "metrics",
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "1Um3MYV4k"
+          },
+          "hide": false,
+          "metricQuery": {
+            "aliasBy": "throttled read bytes {{metric.label.device_name}}",
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_MEAN",
+            "editorMode": "visual",
+            "filters": [
+              "metric.label.device_name",
+              "=~",
+              "$PVC"
+            ],
+            "groupBys": [
+              "metric.label.device_name"
+            ],
+            "metricKind": "DELTA",
+            "metricType": "compute.googleapis.com/instance/disk/throttled_read_bytes_count",
+            "perSeriesAligner": "ALIGN_MEAN",
+            "preprocessor": "rate",
+            "projectName": "tanzu-rabbitmq",
+            "query": "",
+            "valueType": "INT64"
+          },
+          "queryType": "metrics",
+          "refId": "throttled read bytes"
+        },
+        {
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "1Um3MYV4k"
+          },
+          "hide": false,
+          "metricQuery": {
+            "aliasBy": "throttled write bytes {{metric.label.device_name}}",
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_MEAN",
+            "editorMode": "visual",
+            "filters": [
+              "metric.label.device_name",
+              "=~",
+              "$PVC"
+            ],
+            "groupBys": [
+              "metric.label.device_name"
+            ],
+            "metricKind": "DELTA",
+            "metricType": "compute.googleapis.com/instance/disk/throttled_write_bytes_count",
+            "perSeriesAligner": "ALIGN_MEAN",
+            "preprocessor": "rate",
+            "projectName": "tanzu-rabbitmq",
+            "query": "",
+            "valueType": "INT64"
+          },
+          "queryType": "metrics",
+          "refId": "throttled write bytes"
         }
       ],
       "title": "Disk",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 46,
+      "interval": "5s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "logmin",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "exemplar": true,
+          "expr": "sum(rabbitmq_queue_messages_ready{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) by (rabbitmq_cluster)",
+          "interval": "",
+          "legendFormat": "Ready {{ rabbitmq_cluster }}",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "exemplar": true,
+          "expr": "sum(rabbitmq_queue_messages_unacked{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) by (rabbitmq_cluster)",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "Unacked {{ rabbitmq_cluster }}",
+          "refId": "B"
+        }
+      ],
+      "title": "Messages Ready & Unacked",
       "type": "timeseries"
     },
     {
@@ -761,8 +956,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -852,8 +1045,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 16
+        "x": 0,
+        "y": 24
       },
       "id": 44,
       "options": {
@@ -874,15 +1067,137 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "(rabbitmq_resident_memory_limit_bytes{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) -\n(rabbitmq_process_resident_memory_bytes{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"})",
+          "expr": "(rabbitmq_resident_memory_limit_bytes * on(instance) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) -\n(rabbitmq_process_resident_memory_bytes * on(instance) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"})",
           "hide": false,
           "interval": "",
-          "legendFormat": "{{ pod }}",
+          "legendFormat": "{{pod}}",
+          "range": true,
           "refId": "A"
         }
       ],
       "title": "RabbitMQ Memory Available",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic",
+            "seriesBy": "max"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "limit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 60,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\",container=\"rabbitmq\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "range": true,
+          "refId": "usage"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"cpu\"})",
+          "hide": false,
+          "legendFormat": "CPU limit",
+          "range": true,
+          "refId": "limit"
+        }
+      ],
+      "title": "RabbitMQ CPU Usage",
       "type": "timeseries"
     },
     {
@@ -896,7 +1211,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "id": 22,
       "panels": [],
@@ -909,7 +1224,7 @@
           "refId": "A"
         }
       ],
-      "title": "PERFORMANCE",
+      "title": "DETAILS",
       "type": "row"
     },
     {
@@ -923,8 +1238,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -976,7 +1289,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 33
       },
       "id": 29,
       "links": [],
@@ -1041,219 +1354,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 25
-      },
-      "id": 2,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "lastNotNull",
-            "max",
-            "min"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.0.3",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "exemplar": true,
-          "expr": "avg(perftest_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",quantile=\"$percentile\",instance=~\"$instance\",namespace=\"$namespace\"} > 0) by (rabbitmq_cluster)",
-          "format": "time_series",
-          "instant": false,
-          "interval": "1s",
-          "intervalFactor": 1,
-          "legendFormat": "{{instance}}",
-          "refId": "A"
-        }
-      ],
-      "title": "End-to-end message latency",
-      "transparent": true,
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 32
-      },
-      "id": 31,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "lastNotNull",
-            "max",
-            "min"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.0.3",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "exemplar": true,
-          "expr": "perftest_returned{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{instance}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Messages returned / s",
-      "transparent": true,
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1304,7 +1404,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 33
       },
       "id": 40,
       "links": [],
@@ -1360,7 +1460,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1373,7 +1473,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1383,12 +1483,15 @@
               "mode": "off"
             }
           },
+          "links": [],
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1396,29 +1499,36 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 0,
-        "y": 39
+        "y": 40
       },
-      "id": 56,
+      "id": 31,
+      "links": [],
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "mean",
+            "lastNotNull",
+            "max",
+            "min"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "8.0.3",
       "targets": [
         {
           "datasource": {
@@ -1426,13 +1536,16 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "rabbitmq_disk_space_available_bytes {rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
+          "expr": "perftest_returned{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}",
+          "format": "time_series",
           "interval": "",
-          "legendFormat": "{{ rabbitmq_cluster }}",
+          "intervalFactor": 1,
+          "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Available Disk Space",
+      "title": "Messages returned / s",
+      "transparent": true,
       "type": "timeseries"
     },
     {
@@ -1474,12 +1587,12 @@
             }
           },
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1487,42 +1600,17 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "bytes"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "client@cqv2-max-throughput-transient (-x 30 -y 30 -qp q-%d -qpf 1 -qpt 30 -c 100 -ad false -s 100 -z 300 -mp deliveryMode=1 -qa x-max-length=5000000,x-queue-version=2 --use-millis --servers-startup-timeout 300 --producer-random-start-delay 20)"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 39
+        "y": 40
       },
-      "id": 42,
+      "id": 56,
       "options": {
         "legend": {
           "calcs": [],
@@ -1531,11 +1619,10 @@
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
+          "mode": "single",
+          "sort": "none"
         }
       },
-      "pluginVersion": "8.4.2",
       "targets": [
         {
           "datasource": {
@@ -1543,25 +1630,13 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "count(perftest_args{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\"}) by (rabbitmq_cluster, workload_name, command_line)",
+          "expr": "rabbitmq_disk_space_available_bytes {rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
           "interval": "",
-          "legendFormat": "{{ workload_name }}@{{ rabbitmq_cluster }} ({{ command_line }})",
+          "legendFormat": "{{ rabbitmq_cluster }}",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "exemplar": true,
-          "expr": "count(perftest_args{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\"}) by (rabbitmq_cluster) > 0",
-          "hide": true,
-          "interval": "",
-          "legendFormat": "TOTAL@{{ rabbitmq_cluster }}",
-          "refId": "B"
         }
       ],
-      "title": "Perf-Test Instances",
+      "title": "Available Disk Space",
       "type": "timeseries"
     },
     {
@@ -1574,7 +1649,7 @@
         "h": 15,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 48
       },
       "id": 48,
       "options": {
@@ -1603,8 +1678,8 @@
       "type": "logs"
     }
   ],
-  "refresh": false,
-  "schemaVersion": 37,
+  "refresh": "15s",
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -1612,8 +1687,8 @@
       {
         "current": {
           "selected": false,
-          "text": "new-index",
-          "value": "new-index"
+          "text": "kura",
+          "value": "kura"
         },
         "datasource": {
           "type": "prometheus",
@@ -1638,7 +1713,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "All"
           ],
@@ -1702,7 +1777,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "All"
           ],
@@ -1733,7 +1808,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "All"
           ],
@@ -1765,8 +1840,8 @@
     ]
   },
   "time": {
-    "from": "2022-09-27T18:03:51.007Z",
-    "to": "2022-09-27T18:32:21.202Z"
+    "from": "now-1h",
+    "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -1790,7 +1865,7 @@
   },
   "timezone": "",
   "title": "RabbitMQ Performance Tests",
-  "uid": "w8uKu0B7k",
-  "version": 86,
+  "uid": "1OSIKB4Vk",
+  "version": 20,
   "weekStart": ""
 }
