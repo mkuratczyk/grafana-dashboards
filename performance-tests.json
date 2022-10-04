@@ -453,6 +453,7 @@
         "y": 8
       },
       "id": 2,
+      "interval": "5s",
       "links": [],
       "options": {
         "legend": {
@@ -620,10 +621,11 @@
         "y": 16
       },
       "id": 58,
+      "interval": "5s",
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "list",
+          "displayMode": "hidden",
           "placement": "bottom",
           "showLegend": true
         },
@@ -814,6 +816,7 @@
         }
       ],
       "title": "Disk",
+      "transparent": true,
       "type": "timeseries"
     },
     {
@@ -874,7 +877,7 @@
           {
             "matcher": {
               "id": "byFrameRefID",
-              "options": "B"
+              "options": "unacked"
             },
             "properties": [
               {
@@ -903,7 +906,6 @@
         "legend": {
           "calcs": [
             "mean",
-            "logmin",
             "max"
           ],
           "displayMode": "table",
@@ -925,7 +927,7 @@
           "expr": "sum(rabbitmq_queue_messages_ready{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) by (rabbitmq_cluster)",
           "interval": "",
           "legendFormat": "Ready {{ rabbitmq_cluster }}",
-          "refId": "A"
+          "refId": "ready"
         },
         {
           "datasource": {
@@ -938,10 +940,11 @@
           "instant": false,
           "interval": "",
           "legendFormat": "Unacked {{ rabbitmq_cluster }}",
-          "refId": "B"
+          "refId": "unacked"
         }
       ],
       "title": "Messages Ready & Unacked",
+      "transparent": true,
       "type": "timeseries"
     },
     {
@@ -1003,40 +1006,30 @@
           {
             "matcher": {
               "id": "byFrameRefID",
-              "options": "C"
+              "options": "watermark"
             },
             "properties": [
               {
-                "id": "custom.drawStyle",
-                "value": "line"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.axisPlacement",
-                "value": "hidden"
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-orange",
+                  "mode": "fixed"
+                }
               }
             ]
           },
           {
             "matcher": {
               "id": "byFrameRefID",
-              "options": "B"
+              "options": "limit"
             },
             "properties": [
               {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.drawStyle",
-                "value": "bars"
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1049,6 +1042,7 @@
         "y": 24
       },
       "id": 44,
+      "interval": "5s",
       "options": {
         "legend": {
           "calcs": [],
@@ -1069,15 +1063,42 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(rabbitmq_resident_memory_limit_bytes * on(instance) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) -\n(rabbitmq_process_resident_memory_bytes * on(instance) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"})",
+          "expr": "rabbitmq_process_resident_memory_bytes{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
           "hide": false,
           "interval": "",
           "legendFormat": "{{pod}}",
           "range": true,
-          "refId": "A"
+          "refId": "usage"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rabbitmq_resident_memory_limit_bytes{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
+          "hide": false,
+          "legendFormat": "{{rabbitmq_cluster}} high watermark",
+          "range": true,
+          "refId": "watermark"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"memory\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "{{pod}} limit",
+          "range": true,
+          "refId": "limit"
         }
       ],
-      "title": "RabbitMQ Memory Available",
+      "title": "RabbitMQ Memory Used",
+      "transparent": true,
       "type": "timeseries"
     },
     {
@@ -1095,9 +1116,9 @@
           "custom": {
             "axisLabel": "",
             "axisPlacement": "auto",
-            "barAlignment": 0,
+            "barAlignment": -1,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1125,7 +1146,7 @@
             "mode": "percentage",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
               }
             ]
@@ -1145,6 +1166,14 @@
                   "fixedColor": "dark-red",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
               }
             ]
           }
@@ -1157,6 +1186,7 @@
         "y": 24
       },
       "id": 60,
+      "interval": "5s",
       "options": {
         "legend": {
           "calcs": [],
@@ -1190,14 +1220,17 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"cpu\"})",
+          "exemplar": false,
+          "expr": "kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"cpu\"}",
           "hide": false,
+          "instant": false,
           "legendFormat": "CPU limit",
           "range": true,
           "refId": "limit"
         }
       ],
       "title": "RabbitMQ CPU Usage",
+      "transparent": true,
       "type": "timeseries"
     },
     {
@@ -1292,6 +1325,7 @@
         "y": 33
       },
       "id": 29,
+      "interval": "5s",
       "links": [],
       "options": {
         "legend": {
@@ -1301,7 +1335,7 @@
             "max",
             "min"
           ],
-          "displayMode": "list",
+          "displayMode": "hidden",
           "placement": "bottom",
           "showLegend": false
         },
@@ -1407,21 +1441,17 @@
         "y": 33
       },
       "id": 40,
+      "interval": "5s",
       "links": [],
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "lastNotNull",
-            "max",
-            "min"
-          ],
-          "displayMode": "list",
+          "calcs": [],
+          "displayMode": "hidden",
           "placement": "bottom",
           "showLegend": false
         },
         "tooltip": {
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
@@ -1432,12 +1462,14 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "exemplar": true,
-          "expr": "perftest_nacked{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}",
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(perftest_nacked{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}) by (rabbitmq_cluster)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{rabbitmq_cluster}}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -1510,6 +1542,7 @@
         "y": 40
       },
       "id": 31,
+      "interval": "5s",
       "links": [],
       "options": {
         "legend": {
@@ -1519,12 +1552,12 @@
             "max",
             "min"
           ],
-          "displayMode": "list",
+          "displayMode": "hidden",
           "placement": "bottom",
           "showLegend": false
         },
         "tooltip": {
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
@@ -1536,7 +1569,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "perftest_returned{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}",
+          "expr": "sum(perftest_returned{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}) by (rabbitmq_cluster)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1611,6 +1644,7 @@
         "y": 40
       },
       "id": 56,
+      "interval": "5s",
       "options": {
         "legend": {
           "calcs": [],
@@ -1637,6 +1671,7 @@
         }
       ],
       "title": "Available Disk Space",
+      "transparent": true,
       "type": "timeseries"
     },
     {
@@ -1866,6 +1901,6 @@
   "timezone": "",
   "title": "RabbitMQ Performance Tests",
   "uid": "1OSIKB4Vk",
-  "version": 20,
+  "version": 24,
   "weekStart": ""
 }
