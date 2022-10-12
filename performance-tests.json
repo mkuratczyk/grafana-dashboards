@@ -28,8 +28,10 @@
         "expr": "count(perftest_args{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\"}) by (workload_name,command_line) > 0",
         "iconColor": "#023b4e",
         "name": "Workload Name",
+        "step": "60",
         "tagKeys": "workload_name",
-        "titleFormat": "{{command_line}}"
+        "textFormat": "{{command_line}}",
+        "titleFormat": ""
       }
     ]
   },
@@ -96,7 +98,37 @@
           },
           "unit": "none"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "expected"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    0,
+                    10
+                  ],
+                  "fill": "dot"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#ffffff",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -116,7 +148,9 @@
           ],
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "sortBy": "Mean",
+          "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
@@ -131,7 +165,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "perftest_published{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}",
+          "expr": "perftest_published{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -144,12 +178,26 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(perftest_published{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\"}) by (rabbitmq_cluster)",
+          "expr": "sum(perftest_published{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by (rabbitmq_cluster)",
           "hide": false,
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{rabbitmq_cluster}}",
+          "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg(perftest_expected_published{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by (workload_name)",
+          "hide": false,
+          "legendFormat": "{{workload_name}} expected",
+          "range": true,
+          "refId": "expected"
         }
       ],
       "title": "Messages published / s",
@@ -247,7 +295,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "perftest_consumed{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
+          "expr": "perftest_consumed{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -260,12 +308,23 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(perftest_consumed{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) by(rabbitmq_cluster)",
+          "expr": "sum(perftest_consumed{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by(rabbitmq_cluster)",
           "hide": false,
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{rabbitmq_cluster}}",
+          "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(perftest_expected_consumed{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by (workload_name)",
+          "hide": false,
+          "refId": "expected"
         }
       ],
       "title": "Messages consumed / s",
@@ -347,7 +406,9 @@
           ],
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "sortBy": "Mean",
+          "sortDesc": false
         },
         "tooltip": {
           "mode": "multi",
@@ -362,7 +423,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "perftest_confirm_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",quantile=\"$percentile\"}",
+          "expr": "perftest_confirm_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",quantile=\"$percentile\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}",
           "format": "time_series",
           "hide": true,
           "instant": false,
@@ -377,7 +438,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "avg(perftest_confirm_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",quantile=\"$percentile\",} > 0) by (rabbitmq_cluster)",
+          "expr": "avg(perftest_confirm_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",quantile=\"$percentile\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"} > 0) by (rabbitmq_cluster)",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -479,7 +540,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "avg(perftest_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",quantile=\"$percentile\",instance=~\"$instance\",namespace=\"$namespace\"} > 0) by (rabbitmq_cluster)",
+          "expr": "avg(perftest_latency_seconds{rabbitmq_cluster=~\"$rabbitmq_cluster\",quantile=\"$percentile\",instance=~\"$instance\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"} > 0) by (rabbitmq_cluster)",
           "format": "time_series",
           "instant": false,
           "interval": "1s",
@@ -889,6 +950,10 @@
                   ],
                   "fill": "dash"
                 }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
               }
             ]
           }
@@ -908,7 +973,7 @@
             "mean",
             "max"
           ],
-          "displayMode": "table",
+          "displayMode": "hidden",
           "placement": "bottom",
           "showLegend": true
         },
@@ -925,6 +990,7 @@
           },
           "exemplar": true,
           "expr": "sum(rabbitmq_queue_messages_ready{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}) by (rabbitmq_cluster)",
+          "hide": false,
           "interval": "",
           "legendFormat": "Ready {{ rabbitmq_cluster }}",
           "refId": "ready"
@@ -1207,7 +1273,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\",container=\"rabbitmq\"}",
+          "expr": "node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\",container=\"rabbitmq\",pod=~\"$rabbitmq_cluster-server-[0-9]*\"}",
           "hide": false,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -1221,7 +1287,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"cpu\"}",
+          "expr": "kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"cpu\",pod=~\"$rabbitmq_cluster-server-[0-9]*\"}",
           "hide": false,
           "instant": false,
           "legendFormat": "CPU limit",
@@ -1259,6 +1325,190 @@
       ],
       "title": "DETAILS",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "id": 63,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "container_memory_cache{namespace=\"$namespace\",container=\"rabbitmq\",pod=~\"$rabbitmq_cluster-server-[0-9]+\"}",
+          "legendFormat": "{{pod}} page cache",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Page Cache Memory",
+      "transparent": true,
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 33
+      },
+      "id": 56,
+      "interval": "5s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "exemplar": true,
+          "expr": "rabbitmq_disk_space_available_bytes {rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
+          "interval": "",
+          "legendFormat": "{{ rabbitmq_cluster }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Available Disk Space",
+      "transparent": true,
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -1322,7 +1572,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 33
+        "y": 41
       },
       "id": 29,
       "interval": "5s",
@@ -1352,7 +1602,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "perftest_confirmed{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}",
+          "expr": "perftest_confirmed{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -1366,7 +1616,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "sum(perftest_confirmed{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\"}) by (rabbitmq_cluster)",
+          "expr": "sum(perftest_confirmed{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by (rabbitmq_cluster)",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -1438,7 +1688,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 33
+        "y": 41
       },
       "id": 40,
       "interval": "5s",
@@ -1464,7 +1714,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(perftest_nacked{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}) by (rabbitmq_cluster)",
+          "expr": "sum(perftest_nacked{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by (rabbitmq_cluster)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1539,7 +1789,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 48
       },
       "id": 31,
       "interval": "5s",
@@ -1569,7 +1819,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "sum(perftest_returned{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\"}) by (rabbitmq_cluster)",
+          "expr": "sum(perftest_returned{rabbitmq_cluster=~\"$rabbitmq_cluster\",instance=~\"$instance\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by (rabbitmq_cluster)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1583,99 +1833,6 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 40
-      },
-      "id": 56,
-      "interval": "5s",
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "exemplar": true,
-          "expr": "rabbitmq_disk_space_available_bytes {rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
-          "interval": "",
-          "legendFormat": "{{ rabbitmq_cluster }}",
-          "refId": "A"
-        }
-      ],
-      "title": "Available Disk Space",
-      "transparent": true,
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
         "type": "loki",
         "uid": "co3WQzxnk"
       },
@@ -1684,7 +1841,7 @@
         "h": 15,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 55
       },
       "id": 48,
       "options": {
@@ -1871,6 +2028,68 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(perftest_published{namespace=\"$namespace\",rabbitmq_cluster=~\"$rabbitmq_cluster\"}, workload_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Workload",
+        "multi": true,
+        "name": "workload_name",
+        "options": [],
+        "query": {
+          "query": "label_values(perftest_published{namespace=\"$namespace\",rabbitmq_cluster=~\"$rabbitmq_cluster\"}, workload_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(perftest_published{namespace=\"$namespace\",rabbitmq_cluster=~\"$rabbitmq_cluster\"}, msg_size)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Msg Size",
+        "multi": true,
+        "name": "msg_size",
+        "options": [],
+        "query": {
+          "query": "label_values(perftest_published{namespace=\"$namespace\",rabbitmq_cluster=~\"$rabbitmq_cluster\"}, msg_size)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -1899,8 +2118,8 @@
     ]
   },
   "timezone": "",
-  "title": "RabbitMQ Performance Tests",
+  "title": "RabbitMQ Performance Tests (EDITABLE)",
   "uid": "1OSIKB4Vk",
-  "version": 24,
+  "version": 39,
   "weekStart": ""
 }
