@@ -24,10 +24,10 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "enable": true,
+        "enable": false,
         "expr": "count(perftest_args{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\"}) by (workload_name,command_line) > 0",
         "iconColor": "#023b4e",
-        "name": "Workload Name",
+        "name": "Workload",
         "step": "60",
         "tagKeys": "workload_name",
         "textFormat": "{{command_line}}",
@@ -38,7 +38,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 77,
+  "id": null,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -150,7 +150,7 @@
           "placement": "bottom",
           "showLegend": true,
           "sortBy": "Mean",
-          "sortDesc": true
+          "sortDesc": false
         },
         "tooltip": {
           "mode": "multi",
@@ -193,8 +193,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
+          "exemplar": false,
           "expr": "avg(perftest_expected_published{rabbitmq_cluster=~\"$rabbitmq_cluster\",namespace=\"$namespace\",workload_name=~\"$workload_name\",msg_size=~\"$msg_size\"}) by (workload_name)",
-          "hide": false,
+          "hide": true,
+          "instant": false,
           "legendFormat": "{{workload_name}} expected",
           "range": true,
           "refId": "expected"
@@ -1142,7 +1144,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rabbitmq_resident_memory_limit_bytes{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"}",
+          "expr": "avg(rabbitmq_resident_memory_limit_bytes{rabbitmq_cluster=~\"$rabbitmq_cluster\", namespace=\"$namespace\"})",
           "hide": false,
           "legendFormat": "{{rabbitmq_cluster}} high watermark",
           "range": true,
@@ -1155,7 +1157,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"memory\"}",
+          "expr": "avg(kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"memory\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "{{pod}} limit",
@@ -1287,7 +1289,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"cpu\",pod=~\"$rabbitmq_cluster-server-[0-9]*\"}",
+          "expr": "avg(kube_pod_container_resource_limits{job=\"kube-state-metrics\", namespace=\"$namespace\", container=\"rabbitmq\", resource=\"cpu\",pod=~\"$rabbitmq_cluster-server-[0-9]*\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "CPU limit",
@@ -1369,8 +1371,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1460,8 +1461,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1555,8 +1555,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1671,8 +1670,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1772,8 +1770,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1870,7 +1867,7 @@
       "type": "logs"
     }
   ],
-  "refresh": "15s",
+  "refresh": false,
   "schemaVersion": 36,
   "style": "dark",
   "tags": [],
@@ -1879,8 +1876,8 @@
       {
         "current": {
           "selected": false,
-          "text": "kura",
-          "value": "kura"
+          "text": "cqv2",
+          "value": "cqv2"
         },
         "datasource": {
           "type": "prometheus",
@@ -1969,13 +1966,9 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
@@ -2031,13 +2024,9 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
@@ -2088,13 +2077,13 @@
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 3,
         "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -2120,6 +2109,6 @@
   "timezone": "",
   "title": "RabbitMQ Performance Tests (EDITABLE)",
   "uid": "1OSIKB4Vk",
-  "version": 39,
+  "version": 43,
   "weekStart": ""
 }
